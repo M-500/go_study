@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option go_package="./pb/stream;stream";
+package proto;
+
+service StreamService {
+  //ServerStream：服务器端流式 RPC
+  rpc ServerStream(StreamRequest) returns (stream StreamResponse);
+  //ClientStream：客户端流式 RPC
+  rpc ClientStream(stream StreamRequest) returns (StreamResponse);
+  //BothStream：双向流式 RPC
+  rpc BothStream(stream StreamRequest) returns (stream StreamResponse);
+}
+
+
+
+message StreamRequest {
+  string name = 1;
+}
+
+message StreamResponse {
+  string name = 1;
+}
