@@ -21,7 +21,7 @@ func (s *StreamSer) ServerStream(in *sp.StreamRequest, out sp.StreamService_Serv
 	log.Printf("收到客户端的请求 %v", in.GetName())
 	// 返回多份数据给client，假设我们模拟返回10条数据给client
 	for i := 0; i < 10; i++ {
-		err := out.Send(&sp.StreamResponse{Name: fmt.Sprintf("丢雷- %d", i)})
+		err := out.Send(&sp.StreamResponse{Name: fmt.Sprintf("fuck you gRPC- %d", i)})
 		if err != nil {
 			log.Fatalf("Server Stream Send error:%v", err)
 			return err

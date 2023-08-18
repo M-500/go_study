@@ -114,7 +114,7 @@ func main() {
 	defer conn.Close()
 
 	client := pb.NewStreamServiceClient(conn)
-	//serverStreamDemo(client, "舔狗，过来舔我！")
+	serverStreamDemo(client, "舔狗，过来舔我！")
 	//clientStreamDemo(client)
-	bothStreamDemo(client)
+	//bothStreamDemo(client)
 }

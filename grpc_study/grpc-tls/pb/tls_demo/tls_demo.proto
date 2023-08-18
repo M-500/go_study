@@ -1,0 +1,21 @@
+// 声明基于proto版本
+syntax = "proto3";
+
+// 定义go包名
+option go_package="./pb/tls_demo;tls_demo";
+package proto;
+
+// 定义入参
+message HelloRequest {
+  string name = 1;
+}
+
+// 定义返回值
+message HelloResponse {
+  string res = 1;
+}
+
+// 定义接口
+service HelloService {
+  rpc SayHello(HelloRequest) returns (HelloResponse);
+}
