@@ -7,6 +7,8 @@ import (
 	pb "grpcStream/pb/stream"
 	"io"
 	"log"
+	"sync"
+	"time"
 )
 
 const Port = ":8999"
@@ -59,6 +61,51 @@ func clientStreamDemo(client pb.StreamServiceClient) error {
 	return nil
 }
 
+func bothStreamDemo(client pb.StreamServiceClient) {
+	var wg sync.WaitGroup
+	// 2. 调用方法获取stream
+	stream, err := client.BothStream(context.Background())
+	if err != nil {
+		panic(err)
+	}
+	// 3.开两个goroutine 分别用于Recv()和Send()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			req, err := stream.Recv()
+			if err == io.EOF {
+				fmt.Println("服务端已关闭")
+				break
+			}
+			if err != nil {
+				continue
+			}
+			fmt.Printf("客户端收到服务端的数据 :%v \n", req.GetName())
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		// 暂且设置只给服务端流式通信3次
+		for i := 0; i < 3; i++ {
+			err := stream.Send(&pb.StreamRequest{Name: "哟，服务端的小刁毛"})
+			if err != nil {
+				log.Printf("发送失败:%v\n", err)
+			}
+			time.Sleep(time.Second)
+		}
+		// 4. 发送完毕关闭stream
+		err := stream.CloseSend()
+		if err != nil {
+			log.Printf("客户端发送错误:%v\n", err)
+			return
+		}
+	}()
+	wg.Wait()
+}
+
 func main() {
 	conn, err := grpc.Dial(Port, grpc.WithInsecure())
 	if err != nil {
@@ -68,6 +115,6 @@ func main() {
 
 	client := pb.NewStreamServiceClient(conn)
 	//serverStreamDemo(client, "舔狗，过来舔我！")
-	clientStreamDemo(client)
-
+	//clientStreamDemo(client)
+	bothStreamDemo(client)
 }

@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"sync"
 )
 
 const Port = ":8999"
@@ -49,6 +50,42 @@ func (s *StreamSer) ClientStream(clientStr sp.StreamService_ClientStreamServer) 
 
 //BothStream：双向流式 RPC
 func (s *StreamSer) BothStream(in sp.StreamService_BothStreamServer) error {
+	var (
+		waitGroup sync.WaitGroup
+		messageCh = make(chan string)
+	)
+	waitGroup.Add(1)
+
+	go func() {
+		defer waitGroup.Done()
+
+		for ch := range messageCh {
+			err := in.Send(&sp.StreamResponse{Name: ch})
+			if err != nil {
+				fmt.Println("【服务端】 -> 发送失败:", err)
+				continue
+			}
+
+		}
+	}()
+
+	waitGroup.Add(1)
+	go func() {
+		defer waitGroup.Done()
+		for {
+			req, err := in.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatalf("【服务端】 -> 接受失败:", err)
+			}
+			fmt.Printf("【服务端】 发送 :%v \n", req.GetName())
+			messageCh <- req.GetName()
+		}
+		close(messageCh)
+	}()
+	waitGroup.Wait()
 	return nil
 }
 
